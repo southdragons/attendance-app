@@ -47,6 +47,15 @@ async function fetchRecords() {
   loading.value = false // ★追加
 }
 
+async function deleteRecord(id) {
+  await fetch(GAS_URL, {
+    method: 'POST',
+    body: JSON.stringify({ type: 'delete', id })
+  })
+
+  fetchRecords()
+}
+
 onMounted(() => {
   initUserId()
   fetchRecords()
@@ -70,7 +79,10 @@ onMounted(() => {
 
     <!-- データ表示 -->
     <div v-else>
-      <HistoryList :records="records" />
+      <HistoryList
+        :records="records"
+        @delete="deleteRecord"
+      />
     </div>
 
     <!-- 戻る -->

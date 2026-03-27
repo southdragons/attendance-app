@@ -20,7 +20,7 @@ const emit = defineEmits(['add','update','remove'])
         <input
           v-model="m.name"
           placeholder="名前を入力"
-          class="input input-bordered w-full text-lg mb-3"
+          class="input input-bordered w-full text-lg mt-1 bg-white"
         />
 
         <div class="grid grid-cols-2 gap-2">

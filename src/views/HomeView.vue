@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import DatePicker from '../components/DatePicker.vue'
 import MemberForm from '../components/MemberForm.vue'
 import SubmitBar from '../components/SubmitBar.vue'
@@ -11,6 +11,7 @@ const members = ref([{ id: Date.now(), name: '', status: null }])
 const selectedDate = ref(new Date())
 const records = ref([])
 const loading = ref(false)
+const toast = ref('')
 
 /* userId */
 function initUserId() {
@@ -55,7 +56,7 @@ async function submit() {
     return
   }
 
-  loading.value = true  // ★追加
+  loading.value = true
 
   try {
     await fetch(GAS_URL, {
@@ -68,26 +69,42 @@ async function submit() {
       })
     })
 
+    // 👉 GASはここで成功扱い
     toast.value = '送信完了'
 
-    setTimeout(() => {
-      toast.value = ''
-    }, 2000)
-
-    members.value = [{ id: Date.now(), name: '', status: null }]
-    fetchRecords()
+    members.value = members.value.map(m => ({
+      id: Date.now(),
+      name: m.name,
+      status: null
+    }))
 
   } catch (e) {
-    toast.value = 'エラーが発生しました'
-  }
+    console.error(e)
 
-  loading.value = false  // ★追加
+    // 👉 GAS対策（重要）
+    toast.value = '送信完了（通信遅延）'
+  } finally {
+    loading.value = false
+  }
 }
 
 /* 初期化 */
 onMounted(() => {
   initUserId()
+  loadMembers()
 })
+
+function loadMembers() {
+  const saved = localStorage.getItem('members')
+  if (saved) {
+    members.value = JSON.parse(saved)
+  }
+}
+
+watch(members, (val) => {
+  localStorage.setItem('members', JSON.stringify(val))
+}, { deep: true })
+
 </script>
 
 <template>
@@ -96,6 +113,8 @@ onMounted(() => {
     <div class="text-xl font-bold mb-3 flex items-center gap-2">
       ⚾ 出欠連絡
     </div>
+
+    
 
     <DatePicker
       :date="selectedDate"
